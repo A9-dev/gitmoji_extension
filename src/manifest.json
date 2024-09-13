@@ -3,7 +3,8 @@
   "name": "Gitmoji Tooltip Extension",
   "version": "1.0",
   "description": "Show tooltip for Gitmojis on GitHub based on a custom emoji-to-text map",
-  "permissions": ["activeTab", "https://github.com/*"],
+  "permissions": ["activeTab"],
+  "host_permissions": ["https://github.com/*"],
   "content_scripts": [
     {
       "matches": ["https://github.com/*"],
