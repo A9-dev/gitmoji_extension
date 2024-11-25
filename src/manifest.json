@@ -9,6 +9,7 @@
     {
       "matches": ["https://github.com/*"],
       "js": ["content.js"],
+      "css": ["tooltip.css"],
       "run_at": "document_end"
     }
   ]

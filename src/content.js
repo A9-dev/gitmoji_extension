@@ -157,13 +157,7 @@ function createTooltip(text, tooltipX, tooltipY) {
   tooltip.textContent = `gitmoji: ${text}`;
   tooltip.style.position = "absolute";
   tooltip.style.left = `${tooltipX}px`;
-  tooltip.style.top = `${tooltipY - 40}px`;
-  tooltip.style.backgroundColor = "black";
-  tooltip.style.color = "white";
-  tooltip.style.padding = "5px";
-  tooltip.style.borderRadius = "5px";
-  tooltip.style.zIndex = "1000";
-  tooltip.style.pointerEvents = "none";
+  tooltip.style.top = `${tooltipY}px`;
   tooltip.classList.add("emoji-tooltip");
   document.body.appendChild(tooltip);
   return tooltip;
@@ -179,81 +173,75 @@ function checkForEmoji(str) {
   return null;
 }
 
-// Function to handle hover over elements
+// Handle hover event
 function handleHover(event) {
   const element = event.target;
-  const title = element.getAttribute("title") || "";
   const textContent = element.textContent || "";
 
-  // Check for emoji in the title attribute or the inner text
-  const emojiInTitle = checkForEmoji(title);
-  const emojiInText = checkForEmoji(textContent);
+  // Check for emoji in the element's text content
+  const emoji = checkForEmoji(textContent);
 
-  if (emojiInTitle || emojiInText) {
-    const emoji = emojiInTitle || emojiInText;
+  if (emoji) {
     const tooltipText = emojiMap[emoji];
-
     let tooltip;
     let showTooltipTimeout;
-    let mouseStartX, mouseStartY;
 
-    // Create the tooltip after 1 second
+    // Delay tooltip creation
     showTooltipTimeout = setTimeout(() => {
-      tooltip = createTooltip(tooltipText, event.pageX, event.pageY);
+      tooltip = createTooltip(tooltipText, event.pageX, event.pageY - 40);
 
-      // Record initial mouse position
-      mouseStartX = event.pageX;
-      mouseStartY = event.pageY;
-
-      // Update tooltip position as the mouse moves
+      // Update tooltip position on mousemove
       const mouseMoveHandler = (e) => {
-        const distance = Math.sqrt(
-          (e.pageX - mouseStartX) ** 2 + (e.pageY - mouseStartY) ** 2
-        );
-
-        if (distance > 10) {
-          tooltip.remove();
-          element.removeEventListener("mousemove", mouseMoveHandler);
-        }
+        tooltip.style.left = `${e.pageX}px`;
+        tooltip.style.top = `${e.pageY - 40}px`;
       };
 
       element.addEventListener("mousemove", mouseMoveHandler);
 
-      // Remove the tooltip when the mouse leaves
-      element.addEventListener("mouseleave", () => {
+      // Clean up on mouseleave
+      const cleanup = () => {
         tooltip.remove();
         clearTimeout(showTooltipTimeout);
         element.removeEventListener("mousemove", mouseMoveHandler);
-      });
+        element.removeEventListener("mouseleave", cleanup);
+      };
+
+      element.addEventListener("mouseleave", cleanup);
     }, 500);
 
-    // Cancel the tooltip if the mouse leaves before the timeout completes
+    // Cancel tooltip if mouse leaves before timeout
     element.addEventListener("mouseleave", () => {
       clearTimeout(showTooltipTimeout);
-      if (tooltip) tooltip.remove();
     });
   }
 }
 
-// Add hover event listeners to elements
-function addHoverListeners() {
-  const elements = document.querySelectorAll("[title], .commit-title, a");
+// Add hover listeners to elements containing emojis
+function addHoverListenersToElements() {
+  const elements = document.querySelectorAll("*");
   elements.forEach((node) => {
-    const titleContainsEmoji = checkForEmoji(node.getAttribute("title") || "");
-    const textContainsEmoji = checkForEmoji(node.textContent || "");
+    const text = [].reduce.call(
+      node.childNodes,
+      (a, b) => a + (b.nodeType === 3 ? b.textContent : ""),
+      ""
+    );
 
-    if (titleContainsEmoji || textContainsEmoji) {
+    if (checkForEmoji(text)) {
+      node.removeEventListener("mouseenter", handleHover); // Prevent duplicate listeners
       node.addEventListener("mouseenter", handleHover);
     }
   });
 }
 
-// Use MutationObserver to detect changes in the DOM and reapply event listeners
+// Use MutationObserver to detect DOM changes
 const observer = new MutationObserver(() => {
-  addHoverListeners(); // Reapply event listeners
+  addHoverListenersToElements(); // Reapply event listeners on DOM changes
 });
 
+// Observe changes in the document body
 observer.observe(document.body, { childList: true, subtree: true });
 
 // Run the script after the document has loaded
-window.addEventListener("DOMContentLoaded", addHoverListeners);
+window.addEventListener("DOMContentLoaded", () => {
+  addHoverListenersToElements();
+});

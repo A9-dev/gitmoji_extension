@@ -1,5 +1,21 @@
 .emoji-tooltip {
-  font-family: Arial, sans-serif;
+  font-family: var(
+    --fontStack-monospace,
+    ui-monospace,
+    SFMono-Regular,
+    SF Mono,
+    Menlo,
+    Consolas,
+    Liberation Mono,
+    monospace
+  );
   font-size: 12px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  background-color: black;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  z-index: 1000;
+  pointer-events: none;
 }
